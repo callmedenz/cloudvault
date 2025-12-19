@@ -147,12 +147,6 @@ http://localhost:8000
 
 ---
 
-## 📌 Resume Description
-
-Built a cloud-based file storage web application using Python Flask and AWS S3, featuring secure file uploads, grid-based file viewing with image previews, drag-and-drop support, and a persistent light/dark theme.
-
----
-
 ## 📜 License
 
 This project is for learning and educational purposes.
