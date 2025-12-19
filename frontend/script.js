@@ -79,6 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 2000);
 
         loadFiles();
+        loadStorageStats();
       } else {
         selectedFileText.innerText = "Upload failed";
       }
@@ -164,16 +165,41 @@ function getFileIcon(filename) {
 
 
 
-  async function deleteFile(filename) {
-    if (!confirm(`Delete ${filename}?`)) return;
+async function deleteFile(filename) {
+  if (!confirm(`Delete ${filename}?`)) return;
 
-    await fetch(
-      `http://localhost:5000/delete/${encodeURIComponent(filename)}`,
-      { method: "DELETE" }
-    );
+  await fetch(
+    `http://localhost:5000/delete/${encodeURIComponent(filename)}`,
+    { method: "DELETE" }
+  );
 
     loadFiles();
+    loadStorageStats();
   }
 
+async function loadStorageStats() {
+try {
+  const res = await fetch("http://localhost:5000/stats");
+  const data = await res.json();
+
+  const used = data.total_size_mb;
+  const limit = data.limit_mb;
+  const percent = Math.min((used / limit) * 100, 100);
+
+  document.getElementById("storageText").innerText =
+    `Used ${used} MB of ${limit} MB (${data.total_files} files)`;
+
+  document.getElementById("storageFill").style.width = percent + "%";
+
+  } catch (err) {
+    document.getElementById("storageText").innerText =
+      "Failed to load storage data";
+  }
+}
+
+
   loadFiles();
+  loadStorageStats();
+
+
 });

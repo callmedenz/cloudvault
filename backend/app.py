@@ -88,6 +88,33 @@ def list_files():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
+@app.route("/stats", methods=["GET"])
+def storage_stats():
+    try:
+        response = s3.list_objects_v2(Bucket=BUCKET_NAME)
+
+        total_size = 0
+        total_files = 0
+
+        if "Contents" in response:
+            for obj in response["Contents"]:
+                total_size += obj["Size"]
+                total_files += 1
+
+        # Convert bytes → MB
+        total_size_mb = round(total_size / (1024 * 1024), 2)
+
+        return jsonify({
+            "total_size_mb": total_size_mb,
+            "total_files": total_files,
+            "limit_mb": 100  # customer-visible limit
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 
 @app.route("/delete/<filename>", methods=["DELETE"])
