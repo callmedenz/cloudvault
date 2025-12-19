@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CloudVault</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2 class="logo">☁ CloudVault</h2>
+      <ul>
+        <li class="active">My Files</li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+      <div class="top-bar">
+        <button id="themeToggle" class="theme-toggle">🌙</button>
+      </div>
+
+      <h1>My Files</h1>
+
+      <!-- Upload Card -->
+      <div class="upload-card">
+        <p class="upload-title">📤 Upload your files</p>
+
+      <div id="dropZone" class="drop-zone">
+        <p>Drag & drop files here<br>or click to select</p>
+        <input type="file" id="fileInput" hidden />
+      </div>
+
+      <p id="selectedFile" class="file-name">No file selected</p>
+
+
+      <button onclick="uploadFile()">Upload</button>
+        <p id="status"></p>
+      </div>
+
+      <!-- File List -->
+      <div class="files-card">
+        <h3>Your files</h3>
+        <div id="fileGrid" class="file-grid">
+          <!-- file cards will appear here -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
