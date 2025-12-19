@@ -6,13 +6,11 @@ from dotenv import load_dotenv
 from botocore.config import Config
 
 
-# Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-# AWS S3 configuration
 s3 = boto3.client(
     "s3",
     aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
@@ -32,7 +30,6 @@ def home():
 
 @app.route("/upload", methods=["POST"])
 def upload_file():
-    # Check if file is in request
     if "file" not in request.files:
         return jsonify({"error": "No file provided"}), 400
 
@@ -42,7 +39,6 @@ def upload_file():
         return jsonify({"error": "Empty filename"}), 400
 
     try:
-        # Upload file to S3
         s3.upload_fileobj(
             file,
             BUCKET_NAME,
@@ -73,7 +69,6 @@ def list_files():
                     "Key": filename
                 }
 
-                # 🔹 If image, force browser to treat it as image
                 if filename.lower().endswith((".jpg", ".jpeg", ".png", ".webp", ".gif")):
                     params["ResponseContentType"] = "image/*"
                     params["ResponseContentDisposition"] = "inline"

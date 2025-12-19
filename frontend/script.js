@@ -1,13 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
   const themeToggle = document.getElementById("themeToggle");
 
-  // Load saved theme
   if (localStorage.getItem("theme") === "dark") {
     document.body.classList.add("dark");
     themeToggle.innerText = "☀️";
   }
 
-  // Toggle theme
   themeToggle.addEventListener("click", () => {
     document.body.classList.toggle("dark");
 
@@ -26,17 +24,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const selectedFileText = document.getElementById("selectedFile");
   const status = document.getElementById("status");
 
-  // Click to open file picker
   dropZone.addEventListener("click", () => fileInput.click());
 
-  // When file is selected via click
   fileInput.addEventListener("change", () => {
     if (fileInput.files.length) {
       selectedFileText.innerText = "Selected: " + fileInput.files[0].name;
     }
   });
 
-  // Drag events
   dropZone.addEventListener("dragover", (e) => {
     e.preventDefault();
     dropZone.classList.add("dragover");
@@ -113,7 +108,6 @@ async function loadFiles() {
         img.src = file.url;
         img.alt = file.name;
 
-        // 🔹 fallback if image fails
         img.onerror = () => {
           img.remove();
           preview.innerHTML = `<div class="file-icon">${getFileIcon(file.name)}</div>`;
