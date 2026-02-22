@@ -2,57 +2,70 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CloudVault</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 </head>
 <body>
 
   <div class="app">
+
     <aside class="sidebar">
-      <h2 class="logo">☁ CloudVault</h2>
-      <ul>
-        <li class="active">My Files</li>
-      </ul>
+      <div class="logo">
+        <div class="logo-icon">☁</div>
+        CloudVault
+      </div>
+      <nav>
+        <div class="nav-item active">
+          <span class="nav-icon">📁</span> My Files
+        </div>
+      </nav>
     </aside>
 
     <main class="main">
-      <div class="top-bar">
-        <button id="themeToggle" class="theme-toggle">🌙</button>
+
+      <div class="topbar">
+        <h1 class="page-title">My Files</h1>
+        <button id="themeToggle" class="theme-btn" title="Toggle theme">🌙</button>
       </div>
 
-      <h1>My Files</h1>
-
       <div class="storage-card">
-        <h3>📊 Storage Usage</h3>
-
-        <p id="storageText">Loading...</p>
-
-        <div class="storage-bar">
-          <div id="storageFill"></div>
+        <div class="card-label">Storage Usage</div>
+        <div class="storage-info">
+          <span id="storageText" class="storage-used">Loading...</span>
+        </div>
+        <div class="bar-track">
+          <div id="storageFill" class="bar-fill"></div>
         </div>
       </div>
 
-
       <div class="upload-card">
-        <p class="upload-title">📤 Upload your files</p>
-
-      <div id="dropZone" class="drop-zone">
-        <p>Drag & drop files here<br>or click to select</p>
-        <input type="file" id="fileInput" hidden />
-      </div>
-
-      <p id="selectedFile" class="file-name">No file selected</p>
-
-
-      <button onclick="uploadFile()">Upload</button>
-        <p id="status"></p>
+        <div class="card-label">Upload your files</div>
+        <div id="dropZone" class="drop-area">
+          <div class="drop-icon">📂</div>
+          <div class="drop-text">
+            <strong>Drag & drop files here</strong><br>or click to browse
+          </div>
+          <input type="file" id="fileInput" hidden />
+        </div>
+        <div class="upload-row">
+          <span id="selectedFile" class="file-label">No file selected</span>
+          <button class="btn-upload" onclick="uploadFile()">Upload</button>
+        </div>
+        <p id="status" class="status-text"></p>
       </div>
 
       <div class="files-card">
-        <h3>Your files</h3>
-        <div id="fileGrid" class="file-grid">
+        <div class="files-header">
+          <div class="card-label" style="margin:0">Your Files</div>
+          <span id="filesCount" class="files-count">0 files</span>
         </div>
+        <div id="fileGrid" class="file-grid"></div>
       </div>
+
     </main>
   </div>
 

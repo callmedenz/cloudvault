@@ -1,205 +1,257 @@
 document.addEventListener("DOMContentLoaded", () => {
+
+  /* ===========================
+     Theme Toggle
+     =========================== */
   const themeToggle = document.getElementById("themeToggle");
 
+  // Apply saved theme on load
   if (localStorage.getItem("theme") === "dark") {
     document.body.classList.add("dark");
     themeToggle.innerText = "☀️";
+  } else {
+    themeToggle.innerText = "🌙";
   }
 
   themeToggle.addEventListener("click", () => {
-    document.body.classList.toggle("dark");
-
-  if (document.body.classList.contains("dark")) {
-    localStorage.setItem("theme", "dark");
-    themeToggle.innerText = "☀️";
-  } else {
-    localStorage.setItem("theme", "light");
-    themeToggle.innerText = "🌙";
-  }
-});
-
-
-  const dropZone = document.getElementById("dropZone");
-  const fileInput = document.getElementById("fileInput");
-  const selectedFileText = document.getElementById("selectedFile");
-  const status = document.getElementById("status");
-
-  dropZone.addEventListener("click", () => fileInput.click());
-
-  fileInput.addEventListener("change", () => {
-    if (fileInput.files.length) {
-      selectedFileText.innerText = "Selected: " + fileInput.files[0].name;
+    const isDark = document.body.classList.toggle("dark");
+    if (isDark) {
+      localStorage.setItem("theme", "dark");
+      themeToggle.innerText = "☀️";
+    } else {
+      localStorage.setItem("theme", "light");
+      themeToggle.innerText = "🌙";
     }
   });
 
+
+  /* ===========================
+     Drag & Drop / File Input
+     =========================== */
+  const dropZone     = document.getElementById("dropZone");
+  const fileInput    = document.getElementById("fileInput");
+  const selectedFile = document.getElementById("selectedFile");
+  const status       = document.getElementById("status");
+
+  // Click to open file picker
+  dropZone.addEventListener("click", () => fileInput.click());
+
+  // File selected via input
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files.length) {
+      selectedFile.innerText = fileInput.files[0].name;
+    }
+  });
+
+  // Drag over
   dropZone.addEventListener("dragover", (e) => {
     e.preventDefault();
     dropZone.classList.add("dragover");
   });
 
+  // Drag leave
   dropZone.addEventListener("dragleave", () => {
     dropZone.classList.remove("dragover");
   });
 
+  // Drop
   dropZone.addEventListener("drop", (e) => {
     e.preventDefault();
     dropZone.classList.remove("dragover");
-
     if (e.dataTransfer.files.length) {
       fileInput.files = e.dataTransfer.files;
-      selectedFileText.innerText = "Selected: " + e.dataTransfer.files[0].name;
+      selectedFile.innerText = e.dataTransfer.files[0].name;
     }
   });
 
+
+  /* ===========================
+     Upload
+     =========================== */
   window.uploadFile = async function () {
     if (!fileInput.files.length) {
-      status.innerText = "Please select a file";
+      status.innerText = "⚠ Please select a file first.";
       return;
     }
 
-    const file = fileInput.files[0];
+    const file     = fileInput.files[0];
     const formData = new FormData();
     formData.append("file", file);
 
-    selectedFileText.innerText = "Uploading: " + file.name;
+    selectedFile.innerText = `Uploading: ${file.name}`;
     status.innerText = "";
 
     try {
       const response = await fetch("http://localhost:5000/upload", {
         method: "POST",
-        body: formData
+        body: formData,
       });
 
       if (response.ok) {
-        selectedFileText.innerText = "Uploaded: " + file.name;
+        selectedFile.innerText = `✓ Uploaded: ${file.name}`;
+        status.innerText = "";
 
         setTimeout(() => {
-          selectedFileText.innerText = "No file selected";
+          selectedFile.innerText = "No file selected";
           fileInput.value = "";
-        }, 2000);
+        }, 2500);
 
         loadFiles();
         loadStorageStats();
       } else {
-        selectedFileText.innerText = "Upload failed";
+        selectedFile.innerText = "Upload failed.";
+        status.innerText = "Server returned an error.";
       }
     } catch (error) {
-      selectedFileText.innerText = "Upload failed";
+      selectedFile.innerText = "Upload failed.";
+      status.innerText = "Could not reach the server.";
     }
   };
 
-async function loadFiles() {
-  const fileGrid = document.getElementById("fileGrid");
-  fileGrid.innerHTML = "";
 
-  try {
-    const response = await fetch("http://localhost:5000/files");
-    const files = await response.json();
+  /* ===========================
+     Load Files
+     =========================== */
+  async function loadFiles() {
+    const fileGrid   = document.getElementById("fileGrid");
+    const filesCount = document.getElementById("filesCount");
+    fileGrid.innerHTML = "";
 
-    files.forEach(file => {
-      const card = document.createElement("div");
-      card.className = "file-card";
+    try {
+      const response = await fetch("http://localhost:5000/files");
+      const files    = await response.json();
 
-      // Preview box
-      const preview = document.createElement("div");
-      preview.className = "file-preview";
+      filesCount.innerText = `${files.length} file${files.length !== 1 ? "s" : ""}`;
 
-      if (isImage(file.name)) {
-        const img = document.createElement("img");
-        img.src = file.url;
-        img.alt = file.name;
-
-        img.onerror = () => {
-          img.remove();
-          preview.innerHTML = `<div class="file-icon">${getFileIcon(file.name)}</div>`;
-        };
-
-        preview.appendChild(img);
-      } else {
-        preview.innerHTML = `<div class="file-icon">${getFileIcon(file.name)}</div>`;
+      if (files.length === 0) {
+        fileGrid.innerHTML = `
+          <div class="empty-state">
+            <span class="empty-state-icon">📭</span>
+            No files uploaded yet
+          </div>`;
+        return;
       }
 
-      const name = document.createElement("div");
-      name.className = "file-name";
-      name.innerText = file.name;
+      files.forEach((file) => {
+        const card = document.createElement("div");
+        card.className = "file-card";
 
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className = "file-delete";
-      deleteBtn.innerText = "×";
-      deleteBtn.onclick = (e) => {
-        e.stopPropagation();
-        deleteFile(file.name);
-      };
+        // Preview
+        const preview = document.createElement("div");
+        preview.className = "file-preview";
 
-      card.onclick = () => window.open(file.url, "_blank");
+        if (isImage(file.name)) {
+          const img = document.createElement("img");
+          img.src = file.url;
+          img.alt = file.name;
+          img.onerror = () => {
+            img.remove();
+            preview.innerHTML = `<span>${getFileIcon(file.name)}</span>`;
+          };
+          preview.appendChild(img);
+        } else {
+          preview.innerHTML = `<span>${getFileIcon(file.name)}</span>`;
+        }
 
-      card.appendChild(deleteBtn);
-      card.appendChild(preview);
-      card.appendChild(name);
+        // File name
+        const name = document.createElement("span");
+        name.className = "file-name";
+        name.innerText = file.name;
 
-      fileGrid.appendChild(card);
-    });
-  } catch (error) {
-    console.error("Failed to load files", error);
-  }
-}
+        // Delete button
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "file-del";
+        deleteBtn.innerHTML = "&times;";
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation();
+          deleteFile(file.name);
+        };
 
+        // Open file on click
+        card.onclick = () => window.open(file.url, "_blank");
 
+        card.appendChild(deleteBtn);
+        card.appendChild(preview);
+        card.appendChild(name);
+        fileGrid.appendChild(card);
+      });
 
-function isImage(filename) {
-  const ext = filename.split(".").pop().toLowerCase();
-  return ["jpg", "jpeg", "png", "gif", "webp"].includes(ext);
-}
-
-function getFileIcon(filename) {
-  const ext = filename.split(".").pop().toLowerCase();
-
-  if (["pdf"].includes(ext)) return "📕";
-  if (["zip", "rar", "7z"].includes(ext)) return "📦";
-  if (["mp3", "wav"].includes(ext)) return "🎵";
-  if (["mp4", "mkv"].includes(ext)) return "🎬";
-
-  return "📄";
-}
-
-
-
-
-async function deleteFile(filename) {
-  if (!confirm(`Delete ${filename}?`)) return;
-
-  await fetch(
-    `http://localhost:5000/delete/${encodeURIComponent(filename)}`,
-    { method: "DELETE" }
-  );
-
-    loadFiles();
-    loadStorageStats();
+    } catch (error) {
+      fileGrid.innerHTML = `
+        <div class="empty-state">
+          <span class="empty-state-icon">⚠️</span>
+          Could not load files
+        </div>`;
+      console.error("Failed to load files:", error);
+    }
   }
 
-async function loadStorageStats() {
-try {
-  const res = await fetch("http://localhost:5000/stats");
-  const data = await res.json();
 
-  const used = data.total_size_mb;
-  const limit = data.limit_mb;
-  const percent = Math.min((used / limit) * 100, 100);
+  /* ===========================
+     Delete File
+     =========================== */
+  async function deleteFile(filename) {
+    if (!confirm(`Delete "${filename}"?`)) return;
 
-  document.getElementById("storageText").innerText =
-    `Used ${used} MB of ${limit} MB (${data.total_files} files)`;
-
-  document.getElementById("storageFill").style.width = percent + "%";
-
-  } catch (err) {
-    document.getElementById("storageText").innerText =
-      "Failed to load storage data";
+    try {
+      await fetch(`http://localhost:5000/delete/${encodeURIComponent(filename)}`, {
+        method: "DELETE",
+      });
+      loadFiles();
+      loadStorageStats();
+    } catch (error) {
+      console.error("Failed to delete file:", error);
+    }
   }
-}
 
 
+  /* ===========================
+     Storage Stats
+     =========================== */
+  async function loadStorageStats() {
+    try {
+      const res  = await fetch("http://localhost:5000/stats");
+      const data = await res.json();
+
+      const used    = data.total_size_mb;
+      const limit   = data.limit_mb;
+      const percent = Math.min((used / limit) * 100, 100);
+
+      document.getElementById("storageText").innerText =
+        `${used} MB used of ${limit} MB  ·  ${data.total_files} file${data.total_files !== 1 ? "s" : ""}`;
+
+      document.getElementById("storageFill").style.width = percent + "%";
+
+    } catch (err) {
+      document.getElementById("storageText").innerText = "Failed to load storage data";
+    }
+  }
+
+
+  /* ===========================
+     Helpers
+     =========================== */
+  function isImage(filename) {
+    const ext = filename.split(".").pop().toLowerCase();
+    return ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext);
+  }
+
+  function getFileIcon(filename) {
+    const ext = filename.split(".").pop().toLowerCase();
+    if (["pdf"].includes(ext))              return "📕";
+    if (["zip", "rar", "7z"].includes(ext)) return "📦";
+    if (["mp3", "wav", "ogg"].includes(ext)) return "🎵";
+    if (["mp4", "mkv", "mov"].includes(ext)) return "🎬";
+    if (["doc", "docx"].includes(ext))      return "📝";
+    if (["xls", "xlsx"].includes(ext))      return "📊";
+    return "📄";
+  }
+
+
+  /* ===========================
+     Init
+     =========================== */
   loadFiles();
   loadStorageStats();
-
 
 });
